@@ -1,0 +1,141 @@
+1.创建spring-framework-maven项目，包含spring-framework所有模块。
+    <modules>
+        <module>spring-parent</module>
+		<module>spring-aop</module>
+		<module>spring-aspects</module>
+		<module>spring-beans</module>
+		<module>spring-context</module>
+		<module>spring-context-support</module>
+		<module>spring-core</module>
+		<module>spring-expression</module>
+		<module>spring-jcl</module>
+		<module>spring-jdbc</module>
+		<module>spring-jms</module>
+		<module>spring-messaging</module>
+		<module>spring-orm</module>
+		<module>spring-oxm</module>
+		<module>spring-test</module>
+		<module>spring-tx</module>
+		<module>spring-web</module>
+		<module>spring-webflux</module>
+		<module>spring-webmvc</module>
+		<module>spring-websocket</module>
+    </modules>
+	
+2.创建spring-parent父模块，设置java版本，以及公共依赖。
+ <modelVersion>4.0.0</modelVersion>
+  <groupId>org.springframework</groupId>
+  <artifactId>spring-parent</artifactId>
+  <packaging>pom</packaging>
+  <name>Spring Framework - Parent</name>
+  <version>5.0.5.RELEASE</version>
+  <description>Spring Framework Parent</description>
+<dependencies>
+	<dependency>
+		<groupId>org.hamcrest</groupId>
+		<artifactId>hamcrest-core</artifactId>
+		<version>1.3</version>
+	</dependency>
+	<dependency>
+		<groupId>org.hamcrest</groupId>
+		<artifactId>hamcrest-library</artifactId>
+		<version>1.3</version>
+	</dependency>
+	<dependency>
+		<groupId>org.mockito</groupId>
+		<artifactId>mockito-core</artifactId>
+		<version>2.15.0</version>
+	</dependency>
+    <dependency>
+      <groupId>junit</groupId>
+      <artifactId>junit</artifactId>
+      <version>4.12</version>
+      <scope>compile</scope>
+      <exclusions>
+        <exclusion>
+          <artifactId>jcl-over-slf4j</artifactId>
+          <groupId>org.slf4j</groupId>
+        </exclusion>
+      </exclusions>
+      <optional>true</optional>
+    </dependency>
+  </dependencies>
+	<build>
+		<plugins>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-compiler-plugin</artifactId>
+				<version>3.3</version>
+				<configuration>
+					<source>1.8</source>
+					<target>1.8</target>
+					<encoding>UTF-8</encoding>
+				</configuration>
+			</plugin>
+		</plugins>
+	</build>
+	
+3.创建spring-framework模块，pom.xml使用网上公用的，并添加spring-parent父级模块。
+<modelVersion>4.0.0</modelVersion>
+  <parent>
+	<groupId>org.springframework</groupId>
+	<artifactId>spring-parent</artifactId>
+	<version>5.0.5.RELEASE</version>
+	<relativePath>../spring-parent/pom.xml</relativePath>
+  </parent>
+  <groupId>org.springframework</groupId>
+  <artifactId>spring-core</artifactId>
+  <version>5.0.5.RELEASE</version>
+  <name>Spring Core</name>
+  <description>Spring Core</description>
+  
+4.安装spring-cglib-repack-3.2.6.jar和spring-objenesis-repack-2.6.jar到本地仓库
+mvn install:install-file -Dfile=jar包的位置 -DgroupId=上面的groupId -DartifactId=上面的artifactId -Dversion=上面的version -Dpackaging=jar
+
+5.spring-core添加spring-cglib-repack和spring-objenesis-repack依赖
+    <dependency>
+      <groupId>org.springframework</groupId>
+      <artifactId>spring-cglib-repack</artifactId>
+      <version>3.2.6</version>
+    </dependency>
+    <dependency>
+      <groupId>org.springframework</groupId>
+      <artifactId>spring-objenesis-repack</artifactId>
+      <version>2.6</version>
+    </dependency>
+	
+6.maven支持groovy语言，spring-parent引入groovy依赖以及groovy编译插件
+    <dependency>
+       <groupId>org.codehaus.groovy.maven.runtime</groupId>
+       <artifactId>gmaven-runtime-default</artifactId>
+       <version>1.0-rc-3</version>
+    </dependency>
+	<plugin>
+		<groupId>org.codehaus.groovy.maven</groupId>
+		<artifactId>gmaven-plugin</artifactId>
+		<version>1.0</version>
+		<executions>
+			<execution>
+				<goals>
+					<goal>generateStubs</goal>
+					<goal>compile</goal>
+					<goal>generateTestStubs</goal>
+					<goal>testCompile</goal>
+				</goals>
+			</execution>
+		</executions>
+	</plugin>
+	
+7.在POM配置Maven plugin提示错误“Plugin execution not covered by lifecycle configuration”的解决方案 
+这表示m2e在其执行maven的生命周期管理时没有定义该插件，所以提示出错，其实m2e对此是提供了扩展机制的，可以通过如下操作来消除这个出错提示：
+一,进入Window—>Preferences—>Maven配置，进入Lifecycle Mapping设置项，可以看出m2e管理maven生命周期的文件名是lifecycle-mapping-metadata.xml，
+以及该文件的存放路径。
+二,下一步我们就要去相应路径修改lifecycle-mapping-metadata.xml文件，但会发现这个文件在上图中提示的位置并不存在，那么此时就
+以到eclipse的安装目录下的plugins下的org.eclipse.m2e.lifecyclemapping.defaults_xxxxxx.jar文件中找到该文件，
+通过解压软件可以发现lifecycle-mapping-metadata.xml文件的确在jar包中，把它从jar包中解压出来并放置到前图所示的路径下。
+三,打开lifecycle-mapping-metadata.xml文件，把未识别的插件在文件中加入即可。
+四,修改完成后，需在m2e配置处把“Update Maven projects on startup”选项勾上，并重启eclipse即可消除出错示。
+
+8.spring-tx中的com.ibm.websphere:uow:6.0.2.17依赖修改为com.ibm.websphere:com.springsource.com.ibm.websphere.uow:6.0.2.17。
+
+9.添加相关测试依赖
